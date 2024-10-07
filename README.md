@@ -9,7 +9,7 @@ Time series experiments, in which experimental units receive a sequence of treat
 This paper studies the optimal design for A/B testing in partially observable environments. We introduce a controlled (vector) autoregressive moving average model to capture partial observability. We introduce a small signal asymptotic framework to simplify the analysis of asymptotic mean squared errors of average treatment effect estimators under various designs. We develop two algorithms to estimate the optimal design: one utilizing constrained optimization and the other employing reinforcement learning. We demonstrate the superior performance of our designs using a dispatch simulator and two real datasets from a ride-sharing company.
 
 <p align="center">
-    <img src="Diagram.png" alt="Architecture Overview" width="500"/>
+    <img src="ModelDiagram.png" alt="Architecture Overview" width="500"/>
 </p>
 
 ## Run the Code
