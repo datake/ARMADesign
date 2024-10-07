@@ -2,7 +2,7 @@
 
 This repository contains the Python implementation of our two ARMA designs as well as other considered baselines in the synthesis data from a dispatch simulator, the **first environment** of the paper "[Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments](https://arxiv.org/pdf/2408.05342)". 
 
-![Alt text](https://github.com/datake/ARMADesign/ModelDiagram.png)
+![Alt text](ModelDiagram.png)
 
 ## Run the Code
 ### Step 1: Evaluate the True ATE
