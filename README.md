@@ -33,7 +33,7 @@ The average MSE may not strictly equal those reported in Table 1 of our paper du
 
 ## Acknowledgement
 
-We refer to the implementation of [the original dispatch similator](https://github.com/callmespring/MDPOD). The TMDP and NMDP baselines are adapted from the [original implementation](https://github.com/tingstat/MDP_design) of ["Optimal Treatment Allocation for Efficient Policy Evaluation in Sequential Decision Making(NeurIPS 2023)"](https://openreview.net/pdf?id=EcReRm7q9p)
+Regarding the environment, we refer to the implementation of [the original dispatch similator](https://github.com/callmespring/MDPOD). The TMDP and NMDP baselines are adapted from the [original implementation](https://github.com/tingstat/MDP_design) of ["Optimal Treatment Allocation for Efficient Policy Evaluation in Sequential Decision Making(NeurIPS 2023)"](https://openreview.net/pdf?id=EcReRm7q9p)
 
 ## Contact
 
