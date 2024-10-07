@@ -28,7 +28,7 @@ We can evaluate the approximate true efficiency indicators by conducting a 500-d
 python ARMAdesign.py --num_sim 50 --p 2 --q 2 --order 2 --num_epi 50 --num 1
 ```
 
-The average MSE may not strictly equal those reported in Table 1 of our paper due to the randomness in implementation, but the order of all the design's performance should be the same as reported.
+The average MSE may not strictly equal those reported in Table 1 of our paper due to the randomness in implementation. However, the order of all the design's performance should be the same as reported, substantiating the advantages of our ARMA design methods.
 
 
 ## Acknowledgement
