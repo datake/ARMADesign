@@ -13,7 +13,7 @@ This repository contains the Python implementation of our two ARMA designs as we
 python ARMAdesign.py --num_sim 30 --p 2 --q 2 --order 2 --num 1 --num_epi_ate 100000
 ```
 
-We could first evaluate the true ATE after conducting a long time experiment, and we ended up with the true ATE at around 2.24.
+We could first evaluate the true ATE while conducting a long time experiment, and we ended up with the true ATE at around 2.24.
 
 ### Part 2: Evaluate the Efficiency Indicators
 
