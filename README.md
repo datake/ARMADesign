@@ -1,6 +1,12 @@
-# The ARMA Design Implementation for "Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments"
+# Implementation for "Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments"
 
 This repository contains the Python implementation of our two ARMA designs as well as other considered baselines in the synthesis data from a dispatch simulator, the **first environment** of the paper "[Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments](https://arxiv.org/pdf/2408.05342)". 
+
+## Summary of this paper
+
+Time series experiments, in which experimental units receive a sequence of treatments over time, are frequently employed in many technological companies to evaluate the performance of a newly developed policy, product, or treatment relative to a baseline control. Many existing A/B testing solutions assume a fully observable experimental environment that satisfies the Markov condition, which often does not hold in practice.
+
+This paper studies the optimal design for A/B testing in partially observable environments. We introduce a controlled (vector) autoregressive moving average model to capture partial observability. We introduce a small signal asymptotic framework to simplify the analysis of asymptotic mean squared errors of average treatment effect estimators under various designs. We develop two algorithms to estimate the optimal design: one utilizing constrained optimization and the other employing reinforcement learning. We demonstrate the superior performance of our designs using a dispatch simulator and two real datasets from a ride-sharing company.
 
 <p align="center">
     <img src="Diagram.png" alt="Architecture Overview" width="500"/>
@@ -33,7 +39,7 @@ The average MSE may not strictly equal those reported in Table 1 of our paper du
 
 ## Acknowledgement
 
-Regarding the environment, we refer to the implementation of [the original dispatch similator](https://github.com/callmespring/MDPOD). The TMDP and NMDP baselines are adapted from the [original implementation](https://github.com/tingstat/MDP_design) of ["Optimal Treatment Allocation for Efficient Policy Evaluation in Sequential Decision Making(NeurIPS 2023)"](https://openreview.net/pdf?id=EcReRm7q9p)
+Regarding the environment, we refer to the implementation of [the dispatch similator](https://github.com/callmespring/MDPOD). The TMDP and NMDP baselines are adapted from the [original implementation](https://github.com/tingstat/MDP_design) of ["Optimal Treatment Allocation for Efficient Policy Evaluation in Sequential Decision Making (NeurIPS 2023)"](https://openreview.net/pdf?id=EcReRm7q9p)
 
 ## Contact
 
