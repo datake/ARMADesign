@@ -7,23 +7,29 @@ This repository contains the Python implementation of our two ARMA designs as we
 </p>
 
 ## Run the Code
-### Step 1: Evaluate the True ATE
+### Part 1: Evaluate the True ATE
 
 ```
 python ARMAdesign.py --num_sim 30 --p 2 --q 2 --order 2 --num 1 --num_epi_ate 100000
 ```
 
-### Step 2: Evaluate the Efficiency Indicators
+We could first evaluate the true ATE after conducting a long time experiment, and we ended up with the true ATE at around 2.24.
+
+### Part 2: Evaluate the Efficiency Indicators (ei)
 
 ```
 python ARMAdesign.py --num_sim 30 --p 0 --q 0 --order 2 --num_epi_order 500 --num 1
 ```
+We can evaluate the approximate true efficiency indicators by conducting a 500-day experiment. It turns out that the AD's efficiency indicators are less than 0, while the AT's efficiency indicators are positive. These results coincides with Figure 4(a) in the paper and the performance of different designs in Part 3.
 
-### Step 3: Compare the Efficiency of Different Designs
+### Part 3: Compare the Efficiency of Different Designs
 
 ```
 python ARMAdesign.py --num_sim 50 --p 2 --q 2 --order 2 --num_epi 50 --num 1
 ```
+
+The average MSE may not strictly equal those reported in Table 1 of our paper due to the randomness in implementation, but the order of all the design's performance should be the same as reported.
+
 
 ## Acknowledgement
 
