@@ -15,7 +15,7 @@ python ARMAdesign.py --num_sim 30 --p 2 --q 2 --order 2 --num 1 --num_epi_ate 10
 
 We could first evaluate the true ATE after conducting a long time experiment, and we ended up with the true ATE at around 2.24.
 
-### Part 2: Evaluate the Efficiency Indicators (ei)
+### Part 2: Evaluate the Efficiency Indicators
 
 ```
 python ARMAdesign.py --num_sim 30 --p 0 --q 0 --order 2 --num_epi_order 500 --num 1
