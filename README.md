@@ -12,6 +12,7 @@ This paper studies the optimal design for A/B testing in partially observable en
     <img src="ModelDiagram.png" alt="Architecture Overview">
 </p>
 
+
 ## Dataset
 
 The paper reports experiments in three settings:
@@ -39,10 +40,22 @@ Main numerical stack: NumPy, SciPy, pandas, statsmodels, scikit-learn, matplotli
 
 Install from CRAN: `kernlab`, `npreg`, `gss`, `ggplot2`, `readxl`.
 
+## Repository layout
+
+The repository is organized to separate the released methodology code from the scripts used only to reproduce manuscript figures.
+
+```text
+ARMAdesign.py                           Main implementation of the synthetic dispatch simulator and all compared designs
+Figure_EI.py                            Reproduces Figure 4(a) from an experiment workbook
+Figure_Violin.R                         Reproduces Figure 4(b) from an experiment workbook
+Value_function_vary_order_driver_50.npz Saved value-function initialization used by methodology/ARMAdesign.py
+ModelDiagram.png                        Paper overview figure used in this README
+```
+
 ## Run the Code (Synthetic Dispatch Simulator)
 ### Part 1: Evaluate the True ATE
 
-```
+```bash
 python ARMAdesign.py --num_sim 30 --p 2 --q 2 --order 2 --num 1 --num_epi_ate 100000
 ```
 
@@ -91,7 +104,6 @@ Please cite our paper if you use this implementation:
   year={2024}
 }
 ```
-
 
 
 
