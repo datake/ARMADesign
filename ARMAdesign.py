@@ -300,7 +300,7 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
                         if i not in matched_driver_ind: # t=0, still available
                             transition = [[unmatched_driver[1][0], unmatched_driver[1][1], t], [0], 0,
                                           [unmatched_driver[1][0], unmatched_driver[1][1], t + 1]]
-                            # transition data is all the order and driver data with different flags mathched or not
+                            # transition data is all the order and driver data with different flags matched or not
                             transition_data.append(transition.copy())
 
                 if episode >= NUM_INDEPENDENT_RUNS:
@@ -424,8 +424,8 @@ def Switch_estimate(data, switch_m=2):
     P_den[(switch_n - 1) * switch_m - 1:] = 1 / 2
     for kk in range(3, switch_n - 1):
         P_den[kk * switch_m - 1:kk * switch_m + 1] = 1 / 2
-    num_p = np.zeros(N_sample)  # nominator with 1
-    num_n = np.zeros(N_sample)  # nominator with -1
+    num_p = np.zeros(N_sample)  # numerator with 1
+    num_n = np.zeros(N_sample)  # numerator with -1
     # p=m
     for kk in range(switch_m, N_sample + 1):
         if int(action[kk - switch_m:kk].sum()) == switch_m:
@@ -530,7 +530,7 @@ def metric_armax(data):
         a1, a2, a3, a4, a5 = ar[0, :, :], ar[1, :, :], ar[2, :, :], np.zeros((Dim, Dim)), np.zeros((Dim, Dim))
     elif p == 4:
         a1, a2, a3, a4, a5 = ar[0, :, :], ar[1, :, :], ar[2, :, :], ar[3, :, :], np.zeros((Dim, Dim))
-    else:  # p==2
+    else:  # p==5
         a1, a2, a3, a4, a5 = ar[0, :, :], ar[1, :, :], ar[2, :, :], ar[3, :, :], ar[4, :, :]
     if q == 0:
         theta1, theta2, theta3, theta4, theta5 = np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim))
@@ -578,7 +578,7 @@ def Markov(data):
 
     orders = np.array(data['orders'])[1:]
     drivers = np.array(data['drivers'])[1:]
-    series = np.array(data['revenue'])[:-1] * REWARD_FOR_DISTANCE_PARAMETER  # !!! should drift
+    series = np.array(data['revenue'])[:-1] * REWARD_FOR_DISTANCE_PARAMETER  
     action = np.array(data['A'])[1:]
     action[action == 0.0] = -1.0
 
@@ -767,7 +767,7 @@ def real_time_order_dispatch_algorithm_revised(allocation, NUM_EPISODES=500, alp
             allowed_match = np.ones((len(active_orders), len(available_drivers)), dtype=bool)
             for order_count, active_order in enumerate(active_orders):
                 for driver_count, available_driver in enumerate(available_drivers):
-                    # only consider drivers whose manhattan distance is slower than 2
+                    # only consider drivers whose manhattan distance is no more than 2
                     if manhattan_distance(available_driver[1], active_order[1][:2]) > MAX_MANHATTAN_DISTANCE:
                         allowed_match[order_count, driver_count] = False
             # print(allowed_match)
@@ -1042,11 +1042,11 @@ if __name__ == '__main__':
         sys.exit()
     #### compute ATE estimator
     print('Loading data......')
-    Value = np.load('Value_function_vary_order_driver_{}.npz'.format(num_drivers))  # load value function
+    Value = np.load('Value_function_vary_order_driver_{}.npz'.format(num_drivers))  # load value function: num_driver=50 is the default value
     V = Value['arr_0'] # (9,9,20)
 
     #################### step 1: evaluate the true ATE
-    True_ate = 2.24
+    True_ate = 2.24 # this value is obtained after the ATE evaluation below is finished
     if EvaluationTrueATE:
         # 1: mdp, 0: distance
         print('Working on the true ATE............', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
@@ -1062,6 +1062,15 @@ if __name__ == '__main__':
 
     #################### step 2: apply desin policy, compute ATE estimator based on offline data
     Metric = 'ARMAX'
+    """
+    sum_theta: sum of the coefficients of the ARMA model
+    sum_theta_minus: sum of the coefficients of the ARMA model with negative coefficients
+    p: order of the ARMA model
+    q: order of the MA model
+    M21: coefficient of the first and second order terms in the ARMA model
+    M1: coefficient of the first order term in the ARMA model
+    M2: coefficient of the second order term in the ARMA model
+    """
     columns_name = ['Method', "ATE_estimator", 'sum_theta',  'sum_theta_minus', 'p', 'q', 'M21', 'M1', 'M2']
 
     # select the optimal order
@@ -1074,7 +1083,7 @@ if __name__ == '__main__':
         print('Collecting data on action=0', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
         dd0 = real_time_order_dispatch_algorithm_revised(0, NUM_EPISODES=eval_episodes)
         dd_combine = pd.concat([dd0, dd1], axis=0)
-        print('Fit the model!!!', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
+        print('Fit the model!', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
         ATE_order = metric_armax(dd_combine) # select the best model
         ATE_order = pd.DataFrame(np.array(ATE_order).reshape(1, -1))
         ATE_order.columns = columns_name[1:]
@@ -1086,7 +1095,7 @@ if __name__ == '__main__':
 
     ####################### Step 3: compare different designs
 
-    ### Method 1: Switch design with different carry effect
+    ### Method 1: Switch design with different carry effect (we choose the best one to report in the paper)
     # Method 1.1: Switch 2
     ATE_Switch2 = []
     print('Working on Switch2 design............', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
@@ -1113,13 +1122,13 @@ if __name__ == '__main__':
         ATE_Switch10.append(ATE_temp)
 
 
-    ### Method 2: MDP optimal (ours)
+    ### Method 2: MDP optimal (also called RL in our paper)
     ATE_MDP = []
     print('Working on Optimal MDP Design............', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
     dd_temp_estimate = real_time_order_dispatch_algorithm_revised(3, 50) # the result is same for 50 and 500
     print('Estimating collected dataset !')
     ATE_temp_estimate = metric_armax(dd_temp_estimate)
-    print('Finishied Estimating collected dataset !')
+    print('Finished Estimating collected dataset !')
     action = dd_temp_estimate['A']
     q_ = 2
     theta = np.array(ATE_temp_estimate[-3:])  # M21, M1, M2
@@ -1131,13 +1140,13 @@ if __name__ == '__main__':
         ATE_temp = metric_armax(dd_temp)
         ATE_MDP.append(ATE_temp)
 
-    ### Method 3: Markov (ours)
+    ### Method 3: Markov (also called CO in our paper)
     ATE_Markov = []
     print('To initialize the optimal alpha')
     dd_temp_estimate = real_time_order_dispatch_algorithm_revised(3, 50)
     alpha_estimate = Markov(dd_temp_estimate)  # 1.0: deterministic poliy
     print('the optimal alpha is: ', alpha_estimate[0])
-    alpha_estimate = alpha_estimate[0]  # intialization， alpha depends on theta, which depends on action, but can be viewed as constant when ATE is small (b is small)
+    alpha_estimate = alpha_estimate[0]  # intialization: alpha depends on theta, which depends on action, but can be viewed as constant when ATE is small (b is small)
     print('Working on Optimal Markov design, with alpha: {:.3f}............'.format(alpha_estimate),
           time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
     for i in tqdm.tqdm(range(simu)):
@@ -1225,7 +1234,7 @@ if __name__ == '__main__':
     if opt.p == 0 and opt.q == 0:
         ATE_all.to_excel('ARMAdesign_dri{}_epi{}_sim{}_num{}.xlsx'.format(num_drivers, NUM_EPISODES, simu, opt.num), index=False, header=True)
     else:
-        print('Determine the order !!!!') # we directly determine the order of ARMAX
+        print('Determine the order !') # we directly determine the order of ARMAX
         ATE_all.to_excel('ARMAdesign_dri{}_epi{}_sim{}_num{}_p{}q{}.xlsx'.format(num_drivers, NUM_EPISODES, simu, opt.num, opt.p, opt.q), index=False, header=True)
 
 

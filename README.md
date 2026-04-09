@@ -1,6 +1,6 @@
 # Implementation for "ARMA-Design: Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments"
 
-This repository contains the Python implementation of our two ARMA designs as well as other considered baselines in the synthesis data from a dispatch simulator, the **first environment** of the paper "[Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments](https://arxiv.org/pdf/2408.05342)". 
+This repository contains the Python implementation of our two ARMA designs as well as other considered baselines of the paper "[Optimal Treatment Allocation Strategies for A/B Testing in Partially Observable Time Series Experiments](https://arxiv.org/pdf/2408.05342)". 
 
 ## Summary of this paper
 
@@ -63,10 +63,12 @@ python ARMAdesign.py --num_sim 50 --p 2 --q 2 --order 2 --num_epi 50 --num 1
 
 The average MSE may not strictly equal those reported in Table 1 of our paper due to the randomness in implementation. However, the order of all the design's performance should be the same as reported, substantiating the advantages of our ARMA design methods.
 
+**Runtime:** around 3-5 hours (CPU cluster or local machine). 
+
 
 ### Part 4: Figures
 
-- **Figure 4(a):** run `Figure_EI.py` after Part 3. The script’s `read_excel` filename uses `ARMADesign_...` (capital **D**); files from `ARMAdesign.py` are named `ARMAdesign_...` (lowercase **d**). Rename the exported file or edit the path in `Figure_EI.py` so they match.
+- **Figure 4(a):** run `Figure_EI.py` after Part 3. The script’s `read_excel` filename uses `ARMADesign_...`. Rename the exported file or edit the path in `Figure_EI.py` so they match.
 - **Figure 4(b):** run `Figure_Violin.R`. Fix `setwd(...)` (the bundled path may not exist on your machine) and `read_xlsx(...)` to point at your Part 3 workbook; align `n_sim` and the workbook name with your run. The script uses true ATE **2.24** when computing MSE for the plot.
 
 ## Acknowledgement
