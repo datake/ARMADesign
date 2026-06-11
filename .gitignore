@@ -1,5 +1,6 @@
 .DS_Store
 .vscode/
 .Rproj.user/
-.Rhistory/
-ARMAdesign.Rproj
+.Rhistory
+*.Rhistory
+*.Rproj
