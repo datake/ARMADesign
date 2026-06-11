@@ -3,9 +3,8 @@ library(npreg)
 library(gss)
 library(ggplot2)
 library(readxl)
-
-setwd('.ARMDDesign/')
-data <- read_xlsx('ARMADesign_dri50_epi50_sim50_num6_p2q2.xlsx')
+library(here)
+data <- read_xlsx(here("VARMA_dri50_epi50_sim50_num6_p2q2.xlsx"))
 
 delta <- 3
 nn <- 50 # number of drivers

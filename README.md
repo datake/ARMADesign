@@ -48,7 +48,7 @@ The repository is organized to separate the released methodology code from the s
 ARMAdesign.py                           Main implementation of the synthetic dispatch simulator and all compared designs
 Figure_EI.py                            Reproduces Figure 4(a) from an experiment workbook
 Figure_Violin.R                         Reproduces Figure 4(b) from an experiment workbook
-Value_function_vary_order_driver_50.npz Saved value-function initialization used by methodology/ARMAdesign.py
+Value_function_vary_order_driver_50.npz Saved value-function initialization used by ARMAdesign.py
 ModelDiagram.png                        Paper overview figure used in this README
 ```
 
@@ -68,7 +68,7 @@ python ARMAdesign.py --num_sim 30 --p 0 --q 0 --order 2 --num_epi_order 500 --nu
 ```
 
 
-### Part 3: Compare designs (Table 1)
+### Part 3: Compare designs (main code, results in Table 1)
 
 ```bash
 python ARMAdesign.py --num_sim 50 --p 2 --q 2 --order 2 --num_epi 50 --num 1

@@ -16,7 +16,17 @@ pylab.rcParams.update(params)
 matplotlib.use('TkAgg')
 import seaborn as sns
 
-data = pd.read_excel('ARMADesign_dri50_epi50_sim30_num6_p2q2.xlsx')
+data = pd.read_excel('./VARMA_dri50_epi50_sim50_num6_p2q2.xlsx')
+
+# print the overal ATE estimaion results
+ATE_emprical_true = 2.24
+ATE_pd = data[['Method', 'ATE_estimator']].copy()
+ATE_pd['MSE'] = (ATE_pd['ATE_estimator'] - ATE_emprical_true) ** 2
+ATEs_MSE_ave = ATE_pd.groupby('Method')['MSE'].mean().sort_values(ascending=True)
+print(ATEs_MSE_ave)
+
+
+# plot the empirical distribution of the efficiency indicators
 
 data_AD = data[data['Method'] == 'ATE_AD']
 data_AT = data[data['Method'] == 'ATE_AT']
@@ -26,8 +36,8 @@ data2 = data_AT['sum_theta_minus']
 plt.figure(figsize=(10, 6))
 
 # Plot KDEs for both datasets
-sns.kdeplot(x=data1, shade=True, color="blue", label=r"$\text{EI}_{\text{AD}}$", linewidth=2)
-sns.kdeplot(x=data2, shade=True, color="red", label=r"$\text{EI}_{\text{AT}}$", linewidth=2)
+sns.kdeplot(x=data1, fill=True, color="blue", label=r"$\text{EI}_{\text{AD}}$", linewidth=2)
+sns.kdeplot(x=data2, fill=True, color="red", label=r"$\text{EI}_{\text{AT}}$", linewidth=2)
 
 # Add annotations
 plt.axvline(0, color="black", linestyle="--", linewidth=1)

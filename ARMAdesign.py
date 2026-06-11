@@ -25,6 +25,7 @@ def same_seeds(seed):
     random.seed(seed)
     np.random.seed(seed)
 
+# grid parameters
 NUMBER_OF_GRID_TILES_X = 9
 NUMBER_OF_GRID_TILES_Y= 9
 NUMBER_OF_TIME_STEPS = 20
@@ -32,15 +33,14 @@ MAX_MANHATTAN_DISTANCE = 2
 def manhattan_distance(p1,p2):
     return np.abs(p1[0]-p2[0]) + np.abs(p1[1]-p2[1])
 
-
+# order parameters
 NUMBER_OF_ORDERS = 100
-
 LOWER_BOUND_WAITING_TIME = 0
 UPPER_BOUND_WAITING_TIME = 5
 MEAN_WAITING_TIME = 2.5
 STANDARD_DEVIATION_WAITING_TIME = 2
 
-######## waiting time
+# waiting time: modeled by truncated normal distribution
 waiting_time_sampler = stats.truncnorm((LOWER_BOUND_WAITING_TIME - MEAN_WAITING_TIME) / STANDARD_DEVIATION_WAITING_TIME, (UPPER_BOUND_WAITING_TIME - MEAN_WAITING_TIME) / STANDARD_DEVIATION_WAITING_TIME, loc=MEAN_WAITING_TIME, scale=STANDARD_DEVIATION_WAITING_TIME)
 waiting_times = waiting_time_sampler.rvs(NUMBER_OF_ORDERS)
 
@@ -105,6 +105,16 @@ def discounted_reward_mdp(gamma, T, R):
 time_ = 2
 
 def policy_evaluation(state_transactions, V, N, starting_index, method):
+    """"
+    Policy evaluation: estimate the value function V(s) for a given policy.
+    Args:
+        state_transactions: list of state-action-reward-next_state tuples
+        V: value function
+        N: number of times the state has been visited
+        starting_index: index of the first state-action-reward-next_state tuple to consider
+        method: method to use for policy evaluation
+    """
+    # initialize value function and state counter
     if V is None:
         V = np.zeros(np.array(UPPER_LIMITS_BY_DIMENSION) - np.array(LOWER_LIMITS_BY_DIMENSION) + [1,1,1]) # [9,9,20], i.e., state: x,y,time
     if N is None:
@@ -128,7 +138,12 @@ def policy_evaluation(state_transactions, V, N, starting_index, method):
 
 def value_iteration(theta, q):
     '''
-    max_a -\sum_{k=1}^q c_k A_t A_{t-k}
+    Value iteration: estimate the optimal value function V(s) for a given policy: max_a -\sum_{k=1}^q c_k A_t A_{t-k}
+    Args:
+        theta: parameters of the value function
+        q: order of the value function
+    Returns:
+        Policy: optimal policy
     '''
     M21, M1, M2 = theta[0], theta[1], theta[2]
     c1 = M21+M1
@@ -145,12 +160,22 @@ def value_iteration(theta, q):
         Value = np.maximum(temp1, temp2)
         # print(np.sum((Value_ - Value) ** 2)) # converge very fast
     print(Value)
+    # determine the optimal policy based on the value function
     temp1 = np.matmul(np.array([-c1, -c2]), st.transpose()).reshape(2, 2) + gamma * Value[(0, 0, 0, 0), (0, 0, 1, 1)].reshape(2, 2)  # A_t = 1
     temp2 = -np.matmul(np.array([-c1, -c2]), st.transpose()).reshape(2, 2) + gamma * Value[(1, 1, 1, 1), (0, 0, 1, 1)].reshape(2, 2)  # A_t = -1
     Policy[temp1 < temp2] = 0 # 0: take A_t = -1, i.e., action 0 strategy
     return Policy # [2, 2]
 
 def VI_decision(V_, theta, St):
+    '''
+    VI_decision: determine the optimal policy based on the value function
+    Args:
+        V_: value function
+        theta: parameters of the value function
+        St: state
+    Returns:
+        Value: value of the optimal policy
+    '''
     Action_previous = St # [A_{t-2}, A_{t-1}] different from the definition in value_iteration
     at2 = 1 if Action_previous[0] == 0 else int(Action_previous[0])-1  # a_{t-2}: 0:action-1(index1), 1:action1(index0)
     at1 = 1 if Action_previous[1] == 0 else int(Action_previous[1])-1 # a_{t-1}
@@ -159,6 +184,14 @@ def VI_decision(V_, theta, St):
 ratios_of_served_orders = []
 
 def real_time_order_dispatch_algorithm(num_drivers=50):
+    '''
+    real_time_order_dispatch_algorithm: simulate the real-time order dispatch algorithm
+    Args:
+        num_drivers: number of drivers
+    Returns:
+        benchmark_data: benchmark data
+        transition_data: transition data
+    '''
     NUM_EPISODES = 5000
     BENCHMARK_RUNS = 50
     NUM_INDEPENDENT_RUNS = NUM_EPISODES - BENCHMARK_RUNS
@@ -170,11 +203,12 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
 
     stored_mdp_V_functions = []
 
-
+    # initialize benchmark data
     benchmark_data = np.zeros((len(number_of_drivers_list), len(method_list), len(measurement_keypoints), BENCHMARK_RUNS))
 
-
+    # simulate the real-time order dispatch algorithm for each number of drivers and method
     for number_of_drivers_ind, number_of_drivers in enumerate(number_of_drivers_list): # we fix the number of drivers
+        # simulate the real-time order dispatch algorithm for each method: mdp, myopic
         for method_ind, method in enumerate(method_list):
 
             print('number_of_drivers: {}, method: {}'.format(number_of_drivers, method), time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
@@ -185,6 +219,7 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
                 V, N = policy_evaluation(transition_data, None, None, 0, method)
                 starting_index = 0
 
+            # simulate for each episode
             for episode in tqdm.tqdm(range(NUM_EPISODES)):
                 order_driver_distances = []
                 revenue_all = []
@@ -207,20 +242,23 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
                 for i in range(number_of_drivers):
                     drivers.append([0, spawn_uniformly_x_y_location(), i])
 
+                # simulate for each time step
                 for t in range(NUMBER_OF_TIME_STEPS):
                     print(drivers)
+                    # obtain active orders: orders that are not served and are available at the current time step
                     active_orders = [order for order in orders if
                                      (order[0] == False) and (order[1][2] <= t) and (order[1][2] + order[2] >= t)]
                     available_drivers = [driver for driver in drivers if driver[0] <= t]
                     number_of_aviable_drivers.append(len(active_orders))
                     number_of_call_orders.append(len(available_drivers))
 
+
                     allowed_match = np.ones((len(active_orders), len(available_drivers)), dtype=bool)
                     for order_count, active_order in enumerate(active_orders):
                         for driver_count, available_driver in enumerate(available_drivers):
                             if manhattan_distance(available_driver[1], active_order[1][:2]) > MAX_MANHATTAN_DISTANCE:
                                 allowed_match[order_count, driver_count] = False # make sense
-
+                    # compute the advantage function based on the value function
                     if method in ['mdp', 'myopic']:
                         advantage_function = np.zeros((len(active_orders), len(available_drivers)))
                         for order_count, active_order in enumerate(active_orders):
@@ -240,6 +278,7 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
                                         modified_reward = discounted_reward_mdp(DISCOUNT_FACTOR, delta_t, reward)
                                     advantage_function[order_count, driver_count] = future_value + modified_reward - current_value
 
+                    # determine the optimal policy based on the advantage function
                     if episode >= NUM_INDEPENDENT_RUNS and method in ['mdp', 'myopic']:
                         penalized_advantage_matrix = advantage_function # fixing the advantage function in the evaluation
                         for i in range(len(active_orders)):
@@ -262,11 +301,13 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
                     matched_order_ind = []
                     matched_driver_ind = []
 
+                    # collect all the matched order and driver
                     for i in range(len(row_ind)):
                         if row_ind[i] < len(active_orders) and col_ind[i] < len(available_drivers) and allowed_match[row_ind[i], col_ind[i]]:
                             matched_order_ind.append(row_ind[i])
                             matched_driver_ind.append(col_ind[i])
 
+                    # compute the revenue based on the matched order and driver
                     revenue_temp = 0
                     for i in range(len(matched_order_ind)):
                         if allowed_match[matched_order_ind[i]][matched_driver_ind[i]]:
@@ -303,6 +344,7 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
                             # transition data is all the order and driver data with different flags matched or not
                             transition_data.append(transition.copy())
 
+                # compute the benchmark data
                 if episode >= NUM_INDEPENDENT_RUNS:
                     number_of_served_orders = 0
                     for i in range(len(orders)):
@@ -318,6 +360,7 @@ def real_time_order_dispatch_algorithm(num_drivers=50):
 
 
 ############################ Estimation ####################
+### used in NMDP, TMDP for ATE estimation
 def phi_basis(X):
     nx = np.shape(X)[1]
     phi_vector = []
@@ -440,6 +483,15 @@ def Switch_estimate(data, switch_m=2):
 
 
 def optimize_ARIMA(order_list, data, exog):
+    """
+    optimize_ARIMA: optimize the ARIMA model
+    Args:
+        order_list: list of orders
+        data: data
+        exog: exogenous variables
+    Returns:
+        result_df: result dataframe
+    """
     results = []
     for order in order_list:
         try:
@@ -455,6 +507,17 @@ def optimize_ARIMA(order_list, data, exog):
     return result_df
 
 def armax_selection(y, p_max=5, q_max=5, d_max=2, exog=None):
+    '''
+    armax_selection: select the best ARIMA model
+    Args:
+        y: data
+        p_max: maximum order of the AR model
+        q_max: maximum order of the MA model
+        d_max: maximum order of the differencing
+        exog: exogenous variables
+    Returns:
+        result_df: result dataframe
+    '''
     order_list = []
     for d in range(d_max+1):
         for p in range(p_max+1):
@@ -465,6 +528,16 @@ def armax_selection(y, p_max=5, q_max=5, d_max=2, exog=None):
     return result_df
 
 def varmax_selection(y, p_max=5, q_max=5,  exog=None):
+    '''
+    varmax_selection: select the best VARIMA model
+    Args:
+        y: data
+        p_max: maximum order of the AR model
+        q_max: maximum order of the MA model
+        exog: exogenous variables
+    Returns:
+        result_df: result dataframe
+    '''
     order_list = []
     for p in range(p_max+1):
         for q in range(q_max+1):
@@ -492,6 +565,13 @@ def Matmul(mat1, sigma, mat2=None):
         return np.matmul(np.matmul(mat1, sigma), mat2)
 
 def metric_armax(data):
+    '''
+    metric_armax: compute the ATE estimator based on the ARIMA model
+    Args:
+        data: data
+    Returns:
+        model_info: model information
+    '''
     # ['n', 'T', 'orders', 'drivers', 'A', 'Prob', 'revenue', 'ordersNext', 'driversNext']
     orders = np.array(data['orders'])[1:]
     drivers = np.array(data['drivers'])[1:]
@@ -506,6 +586,7 @@ def metric_armax(data):
     else:
         p, q = opt.p, opt.q
     print('p: {}, q: {}'.format(p, q))
+    # fit the VARIMA model
     model = sm.tsa.VARMAX(VectorY[['orders', 'drivers', 'revenue']], order=(p, q), trend='c', exog=action).fit(disp=-1, maxiter=200)
 
     ar = model.coefficient_matrices_var # [p, 3, 3]
@@ -520,6 +601,7 @@ def metric_armax(data):
 
     Dim = 3
 
+    # extract the coefficients of the VARIMA model
     if p == 0:
         a1, a2, a3, a4, a5 = np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim))
     elif p == 1:
@@ -549,6 +631,7 @@ def metric_armax(data):
     e[Dim-1] = 1.0
     A = a1 + a2 + a3 + a4 + a5
 
+    # evaluate the ATE estimation and efficiency indicator functions
     temp5 = Matmul(theta5, Sigma, theta4) + Matmul(theta4, Sigma, theta3) + Matmul(theta3, Sigma, theta2) + Matmul(theta2, Sigma, theta1) + Matmul(theta1, Sigma)
     temp4 = Matmul(theta5, Sigma, theta3) + Matmul(theta4, Sigma, theta2) + Matmul(theta3, Sigma, theta1) + Matmul(theta2, Sigma)
     temp3 = Matmul(theta5, Sigma, theta2) + Matmul(theta4, Sigma, theta1) + Matmul(theta3, Sigma)
@@ -570,6 +653,13 @@ def metric_armax(data):
     return model_info
 
 def Markov(data):
+    '''
+    Markov: compute the ATE estimator based on the VARIMA model
+    Args:
+        data: data
+    Returns:
+        model_info: model information
+    '''
     def polynomial(x, coeffs):
         return np.polyval(coeffs, x)
 
@@ -602,6 +692,7 @@ def Markov(data):
 
     Dim = 3
 
+    # extract the coefficients of the VARIMA model
     if p == 0:
         a1, a2, a3, a4, a5 = np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim)), np.zeros((Dim, Dim))
     elif p == 1:
@@ -653,6 +744,7 @@ def Markov(data):
 
     initial_guess = np.array([0.0])
     bounds = Bounds(-1.0, 1.0)
+    # solve the optimal cofficients by minimizng a polynomial function
     optim = minimize(objective, initial_guess, args=(np.append(coeffs, 0.0),), bounds=bounds)  # from higher order to lower order
     alpha_estimate = (optim.x + 1) / 2.0
 
@@ -699,12 +791,21 @@ def Sigma_S_est(S, Next_S, A, TD_error1, TD_error0, pre_S, prob_or):
 
 
 def real_time_order_dispatch_algorithm_revised(allocation, NUM_EPISODES=500, alpha_estimate=None, simu_i=0, VI=None, carryeffect=None):
+    '''
+    real_time_order_dispatch_algorithm_revised: simulate the real-time order dispatch algorithm
+    Args:
+        allocation: allocation method
+        NUM_EPISODES: number of episodes
+        alpha_estimate: alpha estimate
+        simu_i: simulation index
+        VI: value iteration
+    '''
     method_list = ['distance', 'mdp', 'myopic']
     transition_data = []
     data_all = []
     prob_or = 0.5
     ind = 0
-
+    # simulate for each episode
     for episode in range(NUM_EPISODES):
 
         # for each day: initialize the first 2 actions uniformly
@@ -1033,8 +1134,8 @@ if __name__ == '__main__':
     NUM_EPISODES = opt.num_epi
     gamma = 0.99
     CollectHistoricalData = False
-    EvaluationTrueATE = True if opt.num_epi_ate > 0 else False
-    EvaluationOrder = True if opt.num_epi_order > 0 else False
+    EvaluationTrueATE = True if opt.num_epi_ate > 0 else False # whether to evaluate the true ATE
+    EvaluationOrder = True if opt.num_epi_order > 0 else False # whether to evaluate the order
 
     #### create value function #######
     if CollectHistoricalData:
@@ -1073,7 +1174,7 @@ if __name__ == '__main__':
     """
     columns_name = ['Method', "ATE_estimator", 'sum_theta',  'sum_theta_minus', 'p', 'q', 'M21', 'M1', 'M2']
 
-    # select the optimal order
+    # select the optimal order for ARMAX / VARMAX model
     if EvaluationOrder:
         assert opt.q == 0 and opt.p == 0 # to select the optimal order in VARMAX / ARMAX
         eval_episodes = opt.num_epi_order
@@ -1217,6 +1318,7 @@ if __name__ == '__main__':
         for k in range(simu):
             index_keys.append(i)
 
+    # concatenate all the results
     ATE_all = pd.concat([pd.DataFrame(ATE_Switch2), pd.DataFrame(ATE_Switch5), pd.DataFrame(ATE_Switch10), pd.DataFrame(ATE_MDP),pd.DataFrame(ATE_Markov),
                          pd.DataFrame(ATE_AD), pd.DataFrame(ATE_UR), pd.DataFrame(ATE_AT),
                          pd.DataFrame(ATE_greedy), pd.DataFrame(ATE_TMDP), pd.DataFrame(ATE_NMDP)], axis=0)
@@ -1231,10 +1333,12 @@ if __name__ == '__main__':
     print(opt)
     print('alpha: ', alpha_estimate, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
 
+    # save the results
     if opt.p == 0 and opt.q == 0:
-        ATE_all.to_excel('ARMAdesign_dri{}_epi{}_sim{}_num{}.xlsx'.format(num_drivers, NUM_EPISODES, simu, opt.num), index=False, header=True)
+        ATE_all.to_excel('VARMA_dri{}_epi{}_sim{}_num{}.xlsx'.format(num_drivers, NUM_EPISODES, simu, opt.num), index=False, header=True)
     else:
         print('Determine the order !') # we directly determine the order of ARMAX
-        ATE_all.to_excel('ARMAdesign_dri{}_epi{}_sim{}_num{}_p{}q{}.xlsx'.format(num_drivers, NUM_EPISODES, simu, opt.num, opt.p, opt.q), index=False, header=True)
+        ATE_all.to_excel('VARMA_dri{}_epi{}_sim{}_num{}_p{}q{}.xlsx'.format(num_drivers, NUM_EPISODES, simu, opt.num, opt.p, opt.q), index=False, header=True)
 
 
+    
